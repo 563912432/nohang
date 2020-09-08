@@ -1,32 +1,35 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
     <router-view/>
   </div>
 </template>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-
-#nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
+<script>
+export default {
+  name: 'App',
+  created () {
+    this.initData()
+  },
+  methods: {
+    initData () {
+      // 设置角色
+      this.$store.commit('setRole', 1)
+      // 角色关联的用户信息
+      const userInfo = {
+        number: '001',
+        name: '出纳',
+        password: '12345678'
+      }
+      this.$store.commit('setUserInfo', userInfo)
+      // 内置企业信息
+      const companyInfo = {
+        name: '山东问云机械有限公司',
+        number: '100100100100101010'
+      }
+      this.$store.commit('setCompanyInfo', companyInfo)
     }
   }
 }
+</script>
+<style lang="scss">
 </style>

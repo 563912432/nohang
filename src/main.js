@@ -2,7 +2,11 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import ElementUI from 'element-ui'
+import '@/styles/element-variables.scss'
+import '@/styles/index.scss' // 全局css
 
+Vue.use(ElementUI, { size: 'small' })
 Vue.config.productionTip = false
 
 new Vue({
