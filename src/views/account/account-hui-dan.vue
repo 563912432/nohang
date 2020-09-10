@@ -8,12 +8,12 @@
       </el-breadcrumb>
       <div>
         <span class="mr-40">客户号： ***********</span>
-        <span>操作员号：001</span>
+        <span>操作员号：{{ userInfo.number }}</span>
       </div>
     </div>
     <div v-if="active === 1" class="position-relative">
       <img src="../../assets/huidan.png" alt="">
-      <div class="account-name">51599999999999 山东问云机械有限公司</div>
+      <div class="account-name">{{ companyInfo.number }} {{ companyInfo.name }}</div>
       <div class="account-info">人民币基本存款账户</div>
       <!--查询按钮-->
       <div class="position-relative search">
@@ -23,17 +23,19 @@
     </div>
     <div v-else-if="active === 2" class="position-relative">
       <div class="huidan-header">回单信息</div>
-      <div class="mt-20">
-        <el-table :data="detailData" border highlight-current-row fit size="mini">
-          <el-table-column label="交易时间" prop="payTime" align="center"></el-table-column>
+      <div class="mt-20" style="max-height: 500px;overflow-y: auto">
+        <el-table :data="list" border highlight-current-row fit size="mini">
+          <el-table-column label="交易时间" prop="created_at" align="center"></el-table-column>
           <el-table-column label="付款账号" prop="payAccountNum" align="center"></el-table-column>
-          <el-table-column label="付款户名" prop="payAccountName" align="center"></el-table-column>
+          <el-table-column label="付款户名" prop="payAccountName" align="center">
+            <template>{{ companyInfo.name }}</template>
+          </el-table-column>
           <el-table-column label="收款账号" prop="payeeAccountNum" align="center"></el-table-column>
           <el-table-column label="收款户名" prop="payeeAccountName" align="center"></el-table-column>
           <el-table-column label="交易金额" prop="money" align="center"></el-table-column>
           <el-table-column label="回单" align="center">
-            <template>
-              <el-button type="text" size="mini" @click="active = 3">回单</el-button>
+            <template slot-scope="{ row }">
+              <el-button type="text" size="mini" @click="detail(row)">回单</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -42,7 +44,7 @@
         <el-button size="medium" class="mt-20 mb-20" type="info" @click="active = 1">返回</el-button>
       </div>
     </div>
-    <HuiDanDetail v-else-if="active === 3" @back="active = 2"  :account-data="{}"/>
+    <HuiDanDetail v-else-if="active === 3" @back="active = 2"  :account-data="detailData"/>
   </div>
 </template>
 
@@ -54,18 +56,41 @@ export default {
   data () {
     return {
       active: 1,
-      detailData: []
+      detailData: {}
+    }
+  },
+  computed: {
+    companyInfo () {
+      return this.$store.state.companyInfo
+    },
+    userInfo () {
+      return this.$store.state.userInfo
+    },
+    payTransferInfo () {
+      return this.$store.state.payTransferInfo
+    },
+    checkResultInfo () {
+      return this.$store.state.checkResultInfo
+    }
+  },
+  watch: {
+    payTransferInfo () {
+      this.initData()
+    },
+    checkResultInfo () {
+      this.initData()
     }
   },
   created () {
-    this.getList()
+    this.initData()
   },
   methods: {
-    getList () {
-      this.detailData = [
-        { payTime: '20**09-02 09:02', payAccountNum: '58600552223001240', payAccountName: '义乌远发商贸有限公司', payeeAccountNum: '5159889499889556', payeeAccountName: '山东问云机械有限公司', money: '70000.00' },
-        { payTime: '20**09-02 09:02', payAccountNum: '58600552223001240', payAccountName: '义乌远发商贸有限公司', payeeAccountNum: '5159889499889556', payeeAccountName: '山东问云机械有限公司', money: '70000.00' }
-      ]
+    initData () {
+      this.list = this.payTransferInfo.concat(this.checkResultInfo)
+    },
+    detail (row) {
+      this.detailData = row
+      this.active = 3
     }
   }
 }

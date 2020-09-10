@@ -14,7 +14,7 @@
     <div>
       <div class="pay-payee-header">收款方分组</div>
       <div class="pay-payee-group">
-        <el-tree ref="tree" node-key="id" :expand-on-click-node="false" :default-expand-all="true" style="width: 300px" :data="payeeGroupList" @node-click="choseTree"></el-tree>
+        <el-tree ref="tree" node-key="id" :highlight-current="true" :expand-on-click-node="false" :default-expand-all="true" style="width: 300px" :data="payeeGroupList" @node-click="choseTree"></el-tree>
       </div>
       <div class="text-center mt-15">
         <el-button type="warning" size="medium" @click="add">添加</el-button>
@@ -22,28 +22,31 @@
         <el-button plain size="medium" icon="el-icon-close" @click="del">删除</el-button>
       </div>
       <div class="pay-payee-header mt-20">[图书商]的收款方列表</div>
-      <div class="mt-20">
-        <el-table :data="list" border highlight-current-row fit size="mini">
+      <div class="mt-20" style="max-height: 400px;overflow-y: auto">
+        <el-table :data="list" border highlight-current-row fit size="mini" @selection-change="multiSelect">
           <el-table-column type="selection" align="center"></el-table-column>
           <el-table-column label="序号" align="center">
             <template slot-scope="scope">
-              {{ scope.$index }}
+              {{ scope.$index + 1 }}
             </template>
           </el-table-column>
           <el-table-column label="账号" prop="accountNum" align="center"></el-table-column>
           <el-table-column label="户名" prop="accountName" align="center"></el-table-column>
           <el-table-column label="开户行别" prop="bank" align="center"></el-table-column>
-          <el-table-column label="开户类别" prop="type" align="center"></el-table-column>
+          <el-table-column label="开户类别" prop="type" align="center">
+            <template>企业客户</template>
+          </el-table-column>
         </el-table>
       </div>
       <div class="text-center mt-15">
-        <el-button type="warning" size="medium">添加</el-button>
-        <el-button plain size="medium" icon="el-icon-close">删除</el-button>
+        <el-button type="warning" size="medium" @click="changeGroup">添加</el-button>
+        <el-button plain size="medium" icon="el-icon-close" @click="delGroup">删除</el-button>
       </div>
     </div>
     <div class="mt-20">
       <img src="../../assets/group-help.png" alt="">
     </div>
+    <!--新增弹窗-->
     <el-dialog
       v-el-drag-dialog
       title="添加组别"
@@ -60,12 +63,30 @@
         </div>
       </div>
     </el-dialog>
+    <!--更改分组弹窗-->
+    <el-dialog
+      v-el-drag-dialog
+      title="添加收款方和分组的对应关系 -- 网页对话框"
+      width="600px"
+      :modal="false"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :visible.sync="dialogRelationVisible">
+      <div class="position-relative" style="min-height: 400px;padding: 5px">
+        <div style="border: solid 1px #E7E9E8;padding: 5px 0">
+          <el-tree ref="groupTree" :highlight-current="true" :expand-on-click-node="false" :default-expand-all="true" style="width: 300px" :data="payeeGroupList"></el-tree>
+        </div>
+        <div class="text-center mt-15">
+          <el-button type="warning" size="medium" @click="saveChangePayeeGroup">确认</el-button>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getGroupIds, resetArray } from '@/utils'
-import elDragDialog from '@/directive/el-drag-dialog' // base on element-ui
+import { getGroupIds, resetArray, getGroupNames } from '@/utils'
+import elDragDialog from '@/directive/el-drag-dialog'
 
 export default {
   name: 'PayPayeeGroup',
@@ -79,15 +100,86 @@ export default {
       dialogVisible: false,
       form: {
         groupName: null
-      }
+      },
+      multiSelection: [],
+      dialogRelationVisible: false
     }
   },
   computed: {
     payeeGroupList () {
       return this.$store.state.payeeGroupList
+    },
+    payeeList () {
+      return this.$store.state.payeeInfo
     }
   },
+  created () {
+    this.list = this.payeeList
+  },
   methods: {
+    multiSelect (value) {
+      this.multiSelection = value
+    },
+    // 改变所属分组
+    changeGroup () {
+      if (this.multiSelection.length <= 0) {
+        this.$message.warning('请选择要添加的数据')
+        return false
+      }
+      this.dialogRelationVisible = true
+    },
+    // 删除所属分组（变成迁移）
+    delGroup () {
+      const data = this.$refs.tree.getCurrentNode()
+      if (!data) {
+        this.$message.warning('请选择目标分组')
+        return false
+      }
+      if (data.id === 1) {
+        this.$message.warning('只能操作子分组')
+        return false
+      }
+      if (this.multiSelection.length <= 0) {
+        this.$message.warning('请选择要删除的数据')
+        return false
+      }
+      // 删除分组
+      const payeeAccountNums = []
+      this.multiSelection.forEach(v => {
+        payeeAccountNums.push(v.accountNum)
+      })
+      const obj = {
+        group: '',
+        payeeAccountNums: payeeAccountNums
+      }
+      // 改变列表的分组
+      this.$store.commit('changePayeeGroup', obj)
+      this.$message.success('删除成功')
+      this.dialogRelationVisible = false
+      this.choseTree(data)
+    },
+    // 保存更新分组
+    saveChangePayeeGroup () {
+      const data = this.$refs.groupTree.getCurrentNode()
+      if (!data) {
+        this.$message.warning('请选择目标分组')
+        return false
+      }
+      // 处理一下 multiSelection
+      const payeeAccountNums = []
+      this.multiSelection.forEach(v => {
+        payeeAccountNums.push(v.accountNum)
+      })
+      const obj = {
+        group: data.label,
+        payeeAccountNums: payeeAccountNums
+      }
+      // 改变列表的分组
+      this.$store.commit('changePayeeGroup', obj)
+      this.$message.success('修改成功')
+      this.dialogRelationVisible = false
+      this.choseTree(this.$refs.tree.getCurrentNode())
+    },
     add () {
       // 当前分组id
       this.currentPayGroupId = this.$refs.tree.getCurrentKey()
@@ -148,6 +240,13 @@ export default {
         this.$message.warning('请填写分组名称')
         return false
       }
+      // 检测是否重复
+      resetArray()
+      const array = getGroupNames(this.payeeGroupList)
+      if (array.indexOf(this.form.groupName) > -1) {
+        this.$message.warning('分组名称已经存在')
+        return false
+      }
       if (!this.form.id) {
         // 新增
         // 往分组的children里面添条数据
@@ -171,9 +270,10 @@ export default {
       this.dialogVisible = false
     },
     choseTree (data, node, el) {
-      console.log(data.id)
       // 从列表中找符合条件的收款方列表
-      // this.list = []
+      this.list = this.payeeList.filter(item => {
+        return !(data.id > 1 && item.group !== data.label)
+      })
     }
   }
 }

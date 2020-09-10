@@ -13,6 +13,7 @@
       <div class="company-name">
         {{ companyInfo.name }}，{{ userInfo.name }}
       </div>
+      <div class="toCheckNum" @click="$router.push('/main/check/check-transfer')">{{ payTransferInfo.length }}</div>
     </div>
   </div>
 </template>
@@ -26,6 +27,9 @@ export default {
     },
     userInfo () {
       return this.$store.state.userInfo
+    },
+    payTransferInfo () {
+      return this.$store.state.payTransferInfo
     }
   }
 }
@@ -54,6 +58,18 @@ export default {
         width: 145px;
         height: 70px;
         font-size: 14px;
+      }
+      .toCheckNum {
+        position: absolute;
+        text-align: center;
+        left: 366px;
+        top: 225px;
+        width: 85px;
+        height: 30px;
+        line-height: 30px;
+        font-size: 25px;
+        color: #FB5D80;
+        cursor: pointer;
       }
     }
   }

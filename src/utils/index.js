@@ -433,6 +433,18 @@ export function getGroupIds (item) {
   }
   return treeArray
 }
+// 取收款方分组的名字组成数组
+export function getGroupNames (item) {
+  if (Array.isArray(item) && item.length > 0) {
+    item.forEach(v => {
+      treeArray.push(v.label)
+      getGroupNames(v.children)
+    })
+  } else {
+    treeArray.sort()
+  }
+  return treeArray
+}
 
 // 保存新增用户分组
 export function savePayeeGroup (data, parentGroupId, lastGroupId, groupName) {
@@ -487,6 +499,15 @@ export function delPayeeGroup (data, id) {
 }
 
 /*
+* 数组排序（按照里面每个对象的属性）
+* */
+export function arrSortByProps (props) {
+  return function (a, b) {
+    return a[props] - b[props]
+  }
+}
+
+/*
 * 树结构拆成按顺序排列的一维数组
 * */
 export function treeToOneArray (treeData) {
@@ -506,4 +527,47 @@ export function treeToOneArray (treeData) {
 * */
 export function resetOneArray () {
   treeOneArray = []
+}
+
+/*
+* 取当前时间字符串
+* */
+export function getDatetime () {
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = change(d.getMonth() + 1)
+  const day = change(d.getDate())
+  const hour = change(d.getHours())
+  const minute = change(d.getMinutes())
+  const second = change(d.getSeconds())
+
+  function change (t) {
+    if (t < 10) {
+      return '0' + t
+    } else {
+      return t
+    }
+  }
+  return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second
+}
+
+/*
+* 数字转大写
+* */
+export function numberToUpperCase (n) {
+  if (!/^(0|[1-9]\d*)(\.\d+)?$/.test(n)) {
+    return '数据非法' // 判断数据是否大于0
+  }
+  let unit = '千百拾亿千百拾万千百拾元角分'
+  let str = ''
+  n += '00'
+  const indexpoint = n.indexOf('.') // 如果是小数，截取小数点前面的位数
+  if (indexpoint >= 0) {
+    n = n.substring(0, indexpoint) + n.substr(indexpoint + 1, 2) // 若为小数，截取需要使用的unit单位
+  }
+  unit = unit.substr(unit.length - n.length) // 若为整数，截取需要使用的unit单位
+  for (let i = 0; i < n.length; i++) {
+    str += '零壹贰叁肆伍陆柒捌玖'.charAt(n.charAt(i)) + unit.charAt(i) // 遍历转化为大写的数字
+  }
+  return str.replace(/零(千|百|拾|角)/g, '零').replace(/(零)+/g, '零').replace(/零(万|亿|元)/g, '$1').replace(/(亿)万|壹(拾)/g, '$1$2').replace(/^元零?|零分/g, '').replace(/元$/g, '元整') // 替换掉数字里面的零字符，得到结果
 }

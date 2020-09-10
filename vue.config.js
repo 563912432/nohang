@@ -1,6 +1,6 @@
 'use strict'
 module.exports =  {
-  // publicPath: '',
-  // outputDir: '../public/teacher',
-  // assetsDir: '../teacher/static',
+  publicPath: '',
+  outputDir: 'nong_hang',
+  assetsDir: './static',
 }

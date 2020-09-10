@@ -3,7 +3,7 @@
     <div class="header">
       <div class="line-one">
         <div class="toFirst" @click="$router.push('/')"></div>
-        <div class="back" @click="$router.push('/')"></div>
+        <div class="back" @click="exit"></div>
       </div>
       <div class="line-two">
         <div class="line-two-content">
@@ -23,7 +23,14 @@
 
 <script>
 export default {
-  name: 'Layout'
+  name: 'Layout',
+  methods: {
+    exit () {
+      // 安全退出
+      this.$store.commit('changeLoginState', 0)
+      this.$router.push('/')
+    }
+  }
 }
 </script>
 

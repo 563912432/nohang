@@ -26,14 +26,14 @@
               <el-input v-model="form.accountName"></el-input>
             </el-form-item>
             <el-form-item>
-              <el-button type="warning" size="medium">查询</el-button>
-              <el-button type="warning" size="medium">重置</el-button>
+              <el-button type="warning" size="medium" @click="searchPayee">查询</el-button>
+              <el-button type="warning" size="medium" @click="resetPayee">重置</el-button>
             </el-form-item>
           </el-form>
           <div style="border: solid 1px #E4E7ED;padding-top: 20px">
             <div class="pay-payee-header">查询结果列表</div>
-            <div class="p-20">
-              <el-table :data="payeeList" border highlight-current-row fit size="mini" @selection-change="multiSelect">
+            <div class="p-20" style="max-height: 400px;overflow-y: auto">
+              <el-table :data="searchResultData" border highlight-current-row fit size="mini" @selection-change="multiSelect">
                 <el-table-column type="selection" align="center"></el-table-column>
                 <el-table-column label="序号" align="center">
                   <template slot-scope="scope">
@@ -59,7 +59,7 @@
       </el-tab-pane>
       <el-tab-pane label="新增收款方" name="second">
         <div class="pay-payee-header">填写收款方信息</div>
-        <el-form ref="form" :model="addForm" :rules="rule" label-width="200px" style="width: 600px">
+        <el-form ref="addForm" :model="addForm" :rules="rule" label-width="200px" style="width: 600px">
           <el-form-item label="收款方银行：" prop="bank">
             <el-select v-model="addForm.bank" placeholder="请选择银行" style="width: 400px" @change="choseBank">
               <el-option v-for="item in bankList" :key="item.key" :label="item.value" :value="item.key"></el-option>
@@ -87,7 +87,7 @@
             <span>人民币</span>
           </el-form-item>
           <el-form-item>
-            <el-button type="warning" size="medium" @click="confirm('form')">确定</el-button>
+            <el-button type="warning" size="medium" @click="confirm">确定</el-button>
             <el-button plain size="medium" @click="activeName = 'first'">返回</el-button>
           </el-form-item>
         </el-form>
@@ -103,10 +103,10 @@
       :visible.sync="dialogVisible">
       <div class="position-relative" style="min-height: 400px;padding: 5px">
         <div style="border: solid 1px #E7E9E8;padding: 5px 0">
-          <el-tree :default-expand-all="true" style="width: 300px" :data="treeData"></el-tree>
+          <el-tree ref="groupTree" :expand-on-click-node="false" :default-expand-all="true" style="width: 300px" :data="treeData"></el-tree>
         </div>
         <div class="text-center mt-15">
-          <el-button type="warning" size="medium">添加</el-button>
+          <el-button type="warning" size="medium" @click="chosePayeeGroup">添加</el-button>
         </div>
       </div>
     </el-dialog>
@@ -227,6 +227,11 @@ export default {
       return this.$store.state.payeeInfo
     }
   },
+  watch: {
+    payeeList (value) {
+      this.searchResultData = value
+    }
+  },
   data () {
     return {
       activeName: 'first',
@@ -276,13 +281,46 @@ export default {
       dialogUKVisible: false,
       dialogDetailVisible: false,
       detailList: [],
-      multiSelection: []
+      multiSelection: [],
+      searchResultData: []
     }
   },
   created () {
+    this.searchResultData = this.payeeList
     this.resetPayeeGroupList()
   },
   methods: {
+    // 选择分组
+    chosePayeeGroup () {
+      const data = this.$refs.groupTree.getCurrentNode()
+      if (!data) {
+        this.$message.warning('请选择分组')
+        return false
+      }
+      this.form.group = data.label
+      this.dialogVisible = false
+    },
+    // 查询收款方
+    searchPayee () {
+      const { group, accountNum, accountName } = this.form
+      this.searchResultData = this.payeeList.filter(item => {
+        if (group && group !== '全部分组' && item.group.indexOf(group) === -1) {
+          return false
+        }
+        if (accountNum && item.accountNum.indexOf(accountNum) === -1) {
+          return false
+        }
+        return !(accountName && item.accountName.indexOf(accountName) === -1)
+      })
+    },
+    // 重置收款方
+    resetPayee () {
+      this.form = {
+        group: null,
+        accountNum: null,
+        accountName: null
+      }
+    },
     multiSelect (values) {
       this.multiSelection = values
     },
@@ -300,6 +338,8 @@ export default {
             data.push(v.accountNum)
           })
           this.$store.commit('delPayee', data)
+          this.$message.success('删除成功')
+          this.resetPayee()
         }).catch(() => {
           console.log('cancel')
         })
@@ -319,8 +359,15 @@ export default {
     },
     edit (scope) {
       this.activeName = 'second'
-      this.addForm = scope.row
-      this.addForm.id = scope.$index
+      this.addForm = { ...scope.row }
+      // 找在原始数组中的位置
+      if (Array.isArray(this.payeeList) && this.payeeList.length > 0) {
+        this.payeeList.forEach((v, i) => {
+          if (v.group === scope.row.group && v.accountName === scope.row.accountName && v.accountNum === scope.row.accountNum && v.bank === scope.row.bank && v.otherName === scope.row.otherName) {
+            this.addForm.id = i
+          }
+        })
+      }
     },
     // 树状转一维数组
     resetPayeeGroupList () {
@@ -329,6 +376,9 @@ export default {
     },
     choseGroup () {
       this.dialogVisible = true
+      this.$nextTick(() => {
+        this.treeData = this.payeeGroupList
+      })
     },
     // 选择银行
     choseBank () {
@@ -360,8 +410,8 @@ export default {
       this.choseBankVisible = false
     },
     // 确认
-    confirm (formName) {
-      this.$refs[formName].validate(valid => {
+    confirm () {
+      this.$refs.addForm.validate(valid => {
         if (valid) {
           this.dialogConfirmVisible = true
         }
@@ -372,10 +422,24 @@ export default {
     },
     save () {
       const data = { ...this.addForm }
-      if (data.id) {
+      // 检测是否重复
+      let bool = true
+      if (this.payeeList.length > 0) {
+        this.payeeList.forEach(v => {
+          if (v.accountNum === data.accountNum) {
+            bool = false
+          }
+        })
+      }
+      if (!bool) {
+        this.$message.warning('收款方账号不允许重复')
+        return false
+      }
+      if (data.id >= 0) {
         // 编辑
         this.$store.commit('editPayeeInfo', data)
         this.$message.success('编辑成功')
+        this.resetPayee()
       } else {
         // 新增
         this.$store.commit('savePayeeInfo', data)
@@ -385,7 +449,7 @@ export default {
       this.dialogUKVisible = false
       delete this.addForm.id
       this.resetAddForm()
-      this.$refs.form.resetFields()
+      this.$refs.addForm.resetFields()
     },
     resetAddForm () {
       this.addForm = {

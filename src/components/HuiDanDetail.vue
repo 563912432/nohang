@@ -1,15 +1,16 @@
 <template>
   <div class="huidanDetail position-relative">
     <img src="../assets/mingxi-search-paper.png" alt="">
-    <div class="pay-account-num">58600552223001240</div>
-    <div class="payee-account-num">5159889499889556</div>
-    <div class="pay-account-name">义乌远发商贸有限公司</div>
-    <div class="payee-account-name">山东问云机械有限公司</div>
-    <div class="pay-bank">中国银行股份有限公司义乌分行</div>
-    <div class="payee-bank">中国农业银行股份有限公司淄博德胜路支行</div>
-    <div class="jin-e-one">柒万元整</div>
-    <div class="jin-e-two">70000.00</div>
-    <div class="pay-time">20**-09-02 09:02</div>
+    <div class="pay-account-num">{{ companyInfo.number }}</div>
+    <div class="payee-account-num">{{ accountData.payeeAccountNum }}</div>
+    <div class="pay-account-name">{{ companyInfo.name }}</div>
+    <div class="payee-account-name">{{ accountData.payeeAccountName }}</div>
+    <div class="pay-bank">{{ companyInfo.bank }}</div>
+    <div class="payee-bank">{{ accountData.payeeBank }}</div>
+    <div class="jin-e-one">
+      {{ parseFloat(accountData.money) | numberToUpperCase }}</div>
+    <div class="jin-e-two">{{ parseFloat(accountData.money).toFixed(2) }}</div>
+    <div class="pay-time">{{ accountData.created_at }}</div>
     <div class="account-time">20******</div>
     <img src="../assets/mingxi-search-help.png" alt="">
     <div class="text-center">
@@ -26,6 +27,14 @@ export default {
       type: Object,
       required: true,
       defaults: null
+    }
+  },
+  computed: {
+    companyInfo () {
+      return this.$store.state.companyInfo
+    },
+    userInfo () {
+      return this.$store.state.userInfo
     }
   },
   methods: {

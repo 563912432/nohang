@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <router-view/>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -24,7 +24,8 @@ export default {
       // 内置企业信息
       const companyInfo = {
         name: '山东问云机械有限公司',
-        number: '100100100100101010'
+        number: '100100100100101010',
+        bank: '中国农业银行股份有限公司淄博德胜路支行'
       }
       this.$store.commit('setCompanyInfo', companyInfo)
     }

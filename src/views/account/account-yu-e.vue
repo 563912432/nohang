@@ -7,20 +7,20 @@
       </el-breadcrumb>
       <div>
         <span class="mr-40">客户号： ***********</span>
-        <span>操作员号：001</span>
+        <span>操作员号：{{ userInfo.number }}</span>
       </div>
     </div>
     <div v-if="active === 1" class="position-relative">
       <img src="../../assets/yue.png" alt="">
-      <div class="account-number">51599999999999</div>
-      <div class="account-name">山东问云机械有限公司</div>
+      <div class="account-number">{{ companyInfo.number }}</div>
+      <div class="account-name">{{ companyInfo.name }}</div>
       <!--查询按钮-->
       <div class="btn-search" @click="active = 2"></div>
     </div>
     <div v-else-if="active === 2" class="position-relative">
       <img src="../../assets/yue-search.png" alt="">
-      <div class="account-search-number">51599999999999</div>
-      <div class="account-search-name">山东问云机械有限公司</div>
+      <div class="account-search-number">{{ companyInfo.number }}</div>
+      <div class="account-search-name">{{ companyInfo.name }}</div>
       <div class="account-type">人民币基本存款账户</div>
       <!--返回按钮-->
       <div class="btn-back" @click="active = 1"></div>
@@ -36,6 +36,14 @@ export default {
   data () {
     return {
       active: 1
+    }
+  },
+  computed: {
+    companyInfo () {
+      return this.$store.state.companyInfo
+    },
+    userInfo () {
+      return this.$store.state.userInfo
     }
   }
 }
