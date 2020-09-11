@@ -1,17 +1,17 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import VuexPersistence from 'vuex-persist'
+// import VuexPersistence from 'vuex-persist'
 import { savePayeeGroup, editPayeeGroup, delPayeeGroup, arrSortByProps } from '@/utils'
 
 Vue.use(Vuex)
 // 前端持久化存储
-const vuexLocal = new VuexPersistence({
-  key: 'abc_info',
-  storage: window.sessionStorage
-})
+// const vuexLocal = new VuexPersistence({
+//   key: 'abc_info',
+//   storage: window.sessionStorage
+// })
 
 export default new Vuex.Store({
-  plugins: [vuexLocal.plugin],
+  // plugins: [vuexLocal.plugin],
   state: {
     bank: [
       { key: '中国农业银行', value: '中国农业银行' },
