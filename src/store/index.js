@@ -42,7 +42,7 @@ export default new Vuex.Store({
     payTransferInfo: [],
     // 复核信息
     checkInfo: [],
-    // 复核通过信息
+    // 复核结果信息
     checkResultInfo: [],
     // 用户答案
     answer: {}

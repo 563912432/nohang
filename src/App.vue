@@ -61,6 +61,25 @@ export default {
       }
       if (data.cmd === 'getAnswer') {
         const answer = this.$store.state.answer
+        // 把answer中的created_at全部去掉，因为时间是实时存储，无法判断
+        // 转账信息
+        if (answer.payTransferInfo && Array.isArray(answer.payTransferInfo) && answer.payTransferInfo.length > 0) {
+          answer.payTransferInfo.forEach(v => {
+            delete v.created_at
+          })
+        }
+        // 复核信息
+        if (answer.checkInfo && Array.isArray(answer.checkInfo) && answer.checkInfo.length > 0) {
+          answer.checkInfo.forEach(v => {
+            delete v.created_at
+          })
+        }
+        // 复核结果信息
+        if (answer.checkResultInfo && Array.isArray(answer.checkResultInfo) && answer.checkResultInfo.length > 0) {
+          answer.checkResultInfo.forEach(v => {
+            delete v.created_at
+          })
+        }
         const keys = Object.keys(answer)
         if (keys.length > 0) {
           this.sendMessage('echo', { business_id: data.params.business_id, answer: answer })

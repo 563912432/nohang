@@ -60,7 +60,7 @@
         <div class="table-input" style="border-right: solid 2px #eeeeee">{{ noPassMoney.toFixed(2) }}</div>
       </div>
       <div class="text-center mt-20 mb-20">
-        <el-button type="warning" size="medium" @click="active = 3">提交</el-button>
+        <el-button type="warning" size="medium" @click="check">提交</el-button>
         <el-button plain size="medium" @click="active = 1">返回</el-button>
       </div>
       <img src="../../assets/check-help3.png" alt="">
@@ -177,11 +177,16 @@ export default {
   },
   methods: {
     initData () {
-      // 判断身份
-      if (this.userInfo.number === '001') {
-        this.number = this.payTransferInfo.length
-        this.calStatistic()
+      // todo 需要判断身份
+      this.number = this.payTransferInfo.length
+      this.calStatistic()
+    },
+    check () {
+      if (this.resultList.length <= 0) {
+        this.$message.warning('没有提交内容')
+        return false
       }
+      this.active = 3
     },
     detail () {
       if (this.number > 0) {
@@ -209,7 +214,6 @@ export default {
       }
       this.$store.commit('saveCheckInfo', row)
       // 计算统计数据
-      this.resetStatistic()
       this.calStatistic()
     },
     // 保存复核成功信息
@@ -233,6 +237,7 @@ export default {
     },
     calStatistic () {
       this.resultList = []
+      this.resetStatistic()
       if (this.checkInfo.length > 0) {
         this.checkInfo.forEach(v => {
           if (v.pass) {
